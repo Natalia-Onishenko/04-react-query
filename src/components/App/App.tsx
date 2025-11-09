@@ -22,6 +22,7 @@ function App() {
     queryKey: ['movies', query, currentPage],
     queryFn: () => fetchMovies(query, currentPage),
     enabled: !!query,
+    placeholderData: (prev) => prev,
   });
 
   
