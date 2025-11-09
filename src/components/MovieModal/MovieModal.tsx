@@ -1,42 +1,57 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { Movie } from '../../types/movie';
-import styles from './MovieModal.module.css';
+import css from './MovieModal.module.css';
 
 interface MovieModalProps {
   movie: Movie;
   onClose: () => void;
 }
 
-const MovieModal = ({ movie, onClose }: MovieModalProps) => {
+const modalRoot = document.body;
+
+const MovieModal: React.FC<MovieModalProps> = ({ movie, onClose }) => {
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEsc);
     document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleEsc);
+
     return () => {
+      document.removeEventListener('keydown', handleEsc);
       document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleEsc);
     };
   }, [onClose]);
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
   return createPortal(
-    <div className={styles.backdrop} onClick={onClose} role="dialog" aria-modal="true">
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeButton} aria-label="Close modal" onClick={onClose}>&times;</button>
+    <div className={css.backdrop} role="dialog" aria-modal="true" onClick={handleBackdropClick}>
+      <div className={css.modal}>
+        <button className={css.closeButton} aria-label="Close modal" onClick={onClose}>
+          &times;
+        </button>
         <img
           src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
           alt={movie.title}
-          className={styles.image}
+          className={css.image}
         />
-        <div className={styles.content}>
+        <div className={css.content}>
           <h2>{movie.title}</h2>
           <p>{movie.overview}</p>
-          <p><strong>Release Date:</strong> {movie.release_date}</p>
-          <p><strong>Rating:</strong> {movie.vote_average}/10</p>
+          <p>
+            <strong>Release Date:</strong> {movie.release_date}
+          </p>
+          <p>
+            <strong>Rating:</strong> {movie.vote_average}/10
+          </p>
         </div>
       </div>
     </div>,
-    document.body
+    modalRoot
   );
 };
 
