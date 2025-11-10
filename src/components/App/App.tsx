@@ -8,7 +8,7 @@ import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import MovieModal from '../MovieModal/MovieModal';
 import ReactPaginate from 'react-paginate';
-import { fetchMovies } from '../../services/movieService';
+import { fetchMovies, type TMDBSearchResponse } from '../../services/movieService';
 
 import type { Movie } from '../../types/movie';
 import css from './App.module.css';
@@ -18,7 +18,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const { data, isLoading, isError, isFetching } = useQuery({
+  const { data, isLoading, isError, isFetching, isSuccess } = useQuery<TMDBSearchResponse>({
     queryKey: ['movies', query, currentPage],
     queryFn: () => fetchMovies(query, currentPage),
     enabled: !!query,
@@ -27,10 +27,10 @@ function App() {
 
   
  useEffect(() => {
-  if (data && data.results.length === 0) {
+  if (isSuccess && data?.results.length === 0) {
     toast.error('No movies found for your request.');
   }
-}, [data]);
+}, [isSuccess, data]);
 
   const handleSearch = (searchQuery: string) => {
     const trimmed = searchQuery.trim();
@@ -60,7 +60,7 @@ function App() {
         <ErrorMessage />
       ) : (
         <>
-          {data?.results.length ? (
+          {isSuccess && data?.results.length ? (
                 <>
                    {data.total_pages > 1 && (
                 <ReactPaginate
